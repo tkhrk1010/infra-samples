@@ -1,0 +1,10 @@
+version: '3.9'
+services:
+  app:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ./src:/app/src
+    command:
+      go run src/main.go
