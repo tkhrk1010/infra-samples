@@ -29,7 +29,7 @@ func main() {
 	})
 
 	// 適当な認証情報を設定
-	cfg, err := config.LoadDefaultConfig(context.TODO(),
+	cfg, err := config.LoadDefaultConfig(ctx,
 		config.WithRegion("us-east-1"),
 		// dev環境の場合は、AnonymousCredentialsを使うと楽。
 		// ~/.aws/credentialsを使う場合は、config.LoadDefaultConfig()のみでOK
