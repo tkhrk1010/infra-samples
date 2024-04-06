@@ -7,7 +7,8 @@ goで読み書きできるようにするversion
 
 ### run
 ```
+$ cd db
 $ make up
-$ cd go
+$ cd ../go
 $ make dev
 ```
