@@ -23,10 +23,15 @@ $ skaffold dev --port-forward
 ```
 
 4. 確認
+containerの確認
 ```
 $ minikube dashboard
+```
+appの確認
+```
 $ curl http://localhost:8001
 ```
+ちなみに、applicationを更新すると自動でB/G deployされる
 
 5. 削除
 ```
