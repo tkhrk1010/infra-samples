@@ -1,0 +1,23 @@
+# this file is a skaffold configuration file
+# scaffoldとは、k8sの開発環境を構築するためのGoogle製ツール
+# $ skaffold init --force で作り、内容を少し書き換えた。
+apiVersion: skaffold/v4beta10
+kind: Config
+metadata:
+  name: minimal
+build:
+  artifacts:
+    - image: hello-app
+      docker:
+        dockerfile: Dockerfile
+manifests:
+  rawYaml:
+    - k8s-hello-app.yaml
+# 以下を手動で追加した
+portForward:
+- resourceType: service
+  resourceName: hello-app
+  namespace: default
+  port: 80
+  address: 0.0.0.0
+  localPort: 8001
