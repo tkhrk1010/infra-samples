@@ -17,7 +17,7 @@ $ minikube docker-env
 $ eval $(minikube -p minikube docker-env)
 ```
 
-3. docker build
+3. docker build and run
 ```
 $ skaffold dev --port-forward
 ```

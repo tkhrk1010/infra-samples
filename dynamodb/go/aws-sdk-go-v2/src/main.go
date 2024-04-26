@@ -5,7 +5,7 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 
-	"github.com/tkhrk1010/infra-samples/dynamodb/go/src/infra"
+	"github.com/tkhrk1010/infra-samples/dynamodb/go/aws-sdk-go-v2/src/infra"
 )
 
 func main() {

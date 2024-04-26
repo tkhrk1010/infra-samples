@@ -10,14 +10,8 @@ build:
 restart:
 	docker-compose restart
 
-dev:
-	docker-compose up
+create_table:
+	sh create_table.sh
 
-awscli:
-	awscli:
-	docker run --rm -it -v ~/.aws:/root/.aws amazon/aws-cli dynamodb create-table \
-    --endpoint-url=http://localhost:4566 \
-    --table-name MyTable \
-    --attribute-definitions AttributeName=ID,AttributeType=S \
-    --key-schema AttributeName=ID,KeyType=HASH \
-    --provisioned-throughput ReadCapacityUnits=1,WriteCapacityUnits=1
+run: up create_table
+	
