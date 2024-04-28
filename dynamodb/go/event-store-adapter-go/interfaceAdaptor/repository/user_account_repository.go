@@ -1,9 +1,13 @@
-package main
+package repository
 
 import (
 	"fmt"
 	esag "github.com/j5ik2o/event-store-adapter-go/pkg"
 	"encoding/json"
+
+	"github.com/tkhrk1010/infra-samples/dynamodb/go/event-store-adapter-go/domain"
+	"github.com/tkhrk1010/infra-samples/dynamodb/go/event-store-adapter-go/domain/models"
+	"github.com/tkhrk1010/infra-samples/dynamodb/go/event-store-adapter-go/domain/events"
 	
 )
 
@@ -18,14 +22,14 @@ func EventConverter(m map[string]interface{}) (esag.Event, error) {
 }
 
 func SnapshotConverter(m map[string]interface{}) (esag.Aggregate, error) {
-	userAccountId, err := ConvertUserAccountIdFromJSON(m["id"].(map[string]interface{})).Get()
+	userAccountId, err := models.ConvertUserAccountIdFromJSON(m["id"].(map[string]interface{})).Get()
 	if err != nil {
 		return nil, err
 	}
 	name := m["name"].(string)
 	seqNr := uint64(m["seq_nr"].(float64))
 	version := uint64(m["version"].(float64))
-	result := NewUserAccountFrom(userAccountId, name, seqNr, version)
+	result := domain.NewUserAccountFrom(userAccountId, name, seqNr, version)
 	return &result, nil
 }
 
@@ -36,7 +40,7 @@ func NewEventSerializer() *EventSerializer {
 }
 
 func (s *EventSerializer) Serialize(event esag.Event) ([]byte, error) {
-	result, err := json.Marshal(event.(UserAccountEvent).ToJSON())
+	result, err := json.Marshal(event.(events.UserAccountEvent).ToJSON())
 	if err != nil {
 		return nil, esag.NewSerializationError("Failed to serialize the event", err)
 	}
@@ -59,7 +63,7 @@ func NewSnapshotSerializer() *SnapshotSerializer {
 }
 
 func (s *SnapshotSerializer) Serialize(aggregate esag.Aggregate) ([]byte, error) {
-	result, err := json.Marshal(aggregate.(*UserAccount).ToJSON())
+	result, err := json.Marshal(aggregate.(*domain.UserAccount).ToJSON())
 	if err != nil {
 		return nil, esag.NewSerializationError("Failed to serialize the snapshot", err)
 	}
@@ -90,7 +94,7 @@ func (r *UserAccountRepository) StoreEventAndSnapshot(event esag.Event, aggregat
 	return r.eventStore.PersistEventAndSnapshot(event, aggregate)
 }
 
-func (r *UserAccountRepository) FindById(id esag.AggregateId) (*UserAccount, error) {
+func (r *UserAccountRepository) FindById(id esag.AggregateId) (*domain.UserAccount, error) {
 	fmt.Printf("id: %v", id)
 	result, err := r.eventStore.GetLatestSnapshotById(id)
 	if err != nil {
@@ -103,7 +107,7 @@ func (r *UserAccountRepository) FindById(id esag.AggregateId) (*UserAccount, err
 		if err != nil {
 			return nil, err
 		}
-		return replayUserAccount(events, result.Aggregate().(*UserAccount)), nil
+		return domain.ReplayUserAccount(events, result.Aggregate().(*domain.UserAccount)), nil
 	}
 }
 

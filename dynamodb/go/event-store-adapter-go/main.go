@@ -10,6 +10,11 @@ import (
 	esag "github.com/j5ik2o/event-store-adapter-go/pkg"
 	"log/slog"
 	"os"
+
+	"github.com/tkhrk1010/infra-samples/dynamodb/go/event-store-adapter-go/domain"
+	"github.com/tkhrk1010/infra-samples/dynamodb/go/event-store-adapter-go/domain/models"
+	"github.com/tkhrk1010/infra-samples/dynamodb/go/event-store-adapter-go/interfaceAdaptor/repository"
+
 )
 
 func main() {
@@ -59,14 +64,14 @@ func main() {
 		journalAidIndexName,
 		snapshotAidIndexName,
 		uint64(shardCount),
-		EventConverter,
-		SnapshotConverter,
-		esag.WithEventSerializer(NewEventSerializer()),
-		esag.WithSnapshotSerializer(NewSnapshotSerializer()))
+		repository.EventConverter,
+		repository.SnapshotConverter,
+		esag.WithEventSerializer(repository.NewEventSerializer()),
+		esag.WithSnapshotSerializer(repository.NewSnapshotSerializer()))
 	if err != nil {
 		panic(err)
 	}
-	repository := NewUserAccountRepository(eventStore)
+	repository := repository.NewUserAccountRepository(eventStore)
 
 
 	// jurnalとsnapshot tableのrecordを全部消すようにしたい
@@ -75,10 +80,11 @@ func main() {
 
 
 	fmt.Println("NewUserAccount")
-	userAccount1, userAccountCreated := NewUserAccount(UserAccountId{value: "1"}, "test")
+	userAccount1, userAccountCreated := domain.NewUserAccount(models.NewUserAccountId("1"), "test")
 	fmt.Printf("userAccount1 = %+v\n", userAccount1)
 
 	// Store an aggregate with a create event
+	fmt.Println("StoreEventAndSnapshot userAccountCreated")
 	err = repository.StoreEventAndSnapshot(userAccountCreated, userAccount1)
 	if err != nil {
 		panic(err)
@@ -86,20 +92,25 @@ func main() {
 
 	// Replay the aggregate from the event store
 	fmt.Println("FindById userAccount1.id")
-	userAccount2, err := repository.FindById(&userAccount1.id)
+	userAccount2, err := repository.FindById(userAccount1.GetId())
 	if err != nil {
 		panic(err)
 	}
 	fmt.Printf("userAccount2 = %+v\n", userAccount2)
 
 	// Execute a command on the aggregate
+	fmt.Println("ChangeName")
 	userAccountUpdated, userAccountRenamed := userAccount2.ChangeName("test2")
+	fmt.Printf("userAccountUpdated = %+v\n", userAccountUpdated)
 
 	// Store the new event without a snapshot
-	err = repository.StoreEvent(userAccountRenamed, userAccountUpdated.version)
+	fmt.Println("StoreEvent userAccountRenamed")
+	err = repository.StoreEvent(userAccountRenamed, userAccountUpdated.GetVersion())
 	// Store the new event with a snapshot
 	// err = repository.StoreEventAndSnapshot(userAccountRenamed, userAccountUpdated)
 	if err != nil {
 		panic(err)
 	}
+
+	fmt.Println("end")
 }
