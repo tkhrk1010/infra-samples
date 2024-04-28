@@ -1,30 +1,11 @@
 version: "3.9"
 
 services:
-  localstack:
-    image: localstack/localstack:2.3.2
-    ports:
-      - "4566:4566" # LocalStack Gateway
-    environment:
-      # LocalStack configuration: https://docs.localstack.cloud/references/configuration/
-      - SERVICES=dynamodb # 起動するサービス
-      - START_WEB=0 # LocalStackの管理コンソールを無効化
-      - DEFAULT_REGION=us-east-1 # デフォルトのリージョン
-      - DEBUG=1 # デバッグモードの有効化
-    volumes:
-      # 永続化したい場合は、名前付きvolumeの行と以下のコメントアウトを外す
-      - localstack-dynamodb-ui-data:/tmp/localstack
-      - "/var/run/docker.sock:/var/run/docker.sock" # Dockerデーモンへのアクセス
-  
+  # official/のlocalstackを立ち上げている前提
   # dynamodb-adminとして、UIを提供する
   dynamodb-admin:
     image: aaronshaf/dynamodb-admin # starが1.3kくらいあったので、使ってみる
     ports:
       - "8001:8001"
     environment:
-      - DYNAMO_ENDPOINT=http://localstack:4566 # LocalStackのエンドポイント
-    depends_on:
-      - localstack
-
-volumes:
-  localstack-dynamodb-ui-data:
+      - DYNAMO_ENDPOINT=http://host.docker.internal:4566 # LocalStackのエンドポイント
