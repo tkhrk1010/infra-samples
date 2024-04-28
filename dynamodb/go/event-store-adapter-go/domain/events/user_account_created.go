@@ -7,66 +7,65 @@ import (
 )
 
 type UserAccountCreated struct {
-	// TODO: scopeをprivateにする
-	Id          string
-	AggregateId esag.AggregateId
-	TypeName    string
-	SeqNr       uint64
-	ExecutorId  models.UserAccountId
-	Name        string
-	OccurredAt  uint64
+	id          string
+	aggregateId esag.AggregateId
+	typeName    string
+	seqNr       uint64
+	executorId  models.UserAccountId
+	name        string
+	occurredAt  uint64
 }
 
 func NewUserAccountCreated(id string, aggregateId esag.AggregateId, seqNr uint64, name string, occurredAt uint64) *UserAccountCreated {
 	return &UserAccountCreated{
-		Id:          id,
-		AggregateId: aggregateId,
-		TypeName:    "UserAccountCreated",
-		SeqNr:       seqNr,
-		Name:        name,
-		OccurredAt:  occurredAt,
+		id:          id,
+		aggregateId: aggregateId,
+		typeName:    "UserAccountCreated",
+		seqNr:       seqNr,
+		name:        name,
+		occurredAt:  occurredAt,
 	}
 }
 
 func (g *UserAccountCreated) ToJSON() map[string]interface{} {
 	return map[string]interface{}{
 		"type_name":    g.GetTypeName(),
-		"id":           g.Id,
-		"aggregate_id": g.AggregateId,
-		"name":         g.Name,
-		"executor_id":  g.ExecutorId.ToJSON(),
-		"seq_nr":       g.SeqNr,
-		"occurred_at":  g.OccurredAt,
+		"id":           g.id,
+		"aggregate_id": g.aggregateId,
+		"name":         g.name,
+		"executor_id":  g.executorId.ToJSON(),
+		"seq_nr":       g.seqNr,
+		"occurred_at":  g.occurredAt,
 	}
 }
 
 
 func (e *UserAccountCreated) String() string {
-	return fmt.Sprintf("UserAccountCreated{Id: %s, AggregateId: %s, SeqNr: %d, Name: %s, OccurredAt: %d}", e.Id, e.AggregateId, e.SeqNr, e.Name, e.OccurredAt)
+	return fmt.Sprintf("UserAccountCreated{Id: %s, aggregateId: %s, SeqNr: %d, Name: %s, OccurredAt: %d}", e.id, e.aggregateId, e.seqNr, e.name, e.occurredAt)
 }
 
 func (e *UserAccountCreated) GetId() string {
-	return e.Id
+	return e.id
 }
 
 func (e *UserAccountCreated) GetTypeName() string {
-	return e.TypeName
+	return e.typeName
 }
 
 func (e *UserAccountCreated) GetAggregateId() esag.AggregateId {
-	return e.AggregateId
+	return e.aggregateId
 }
 
-func (g *UserAccountCreated) GetExecutorId() *models.UserAccountId {
-	return &g.ExecutorId
+func (e *UserAccountCreated) GetExecutorId() *models.UserAccountId {
+	return &e.executorId
 }
 
 func (e *UserAccountCreated) GetSeqNr() uint64 {
-	return e.SeqNr
+	return e.seqNr
 }
 
 func (e *UserAccountCreated) GetOccurredAt() uint64 {
-	return e.OccurredAt
+	return e.occurredAt
 }
 
 func (e *UserAccountCreated) IsCreated() bool {
