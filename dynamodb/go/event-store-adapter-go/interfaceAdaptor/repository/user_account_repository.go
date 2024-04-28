@@ -95,7 +95,6 @@ func (r *UserAccountRepository) StoreEventAndSnapshot(event esag.Event, aggregat
 }
 
 func (r *UserAccountRepository) FindById(id esag.AggregateId) (*domain.UserAccount, error) {
-	fmt.Printf("id: %v", id)
 	result, err := r.eventStore.GetLatestSnapshotById(id)
 	if err != nil {
 		return nil, err

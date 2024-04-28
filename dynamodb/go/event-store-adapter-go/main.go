@@ -2,16 +2,15 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log/slog"
 	"os"
 
-	"github.com/oklog/ulid/v2"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	esag "github.com/j5ik2o/event-store-adapter-go/pkg"
+	"github.com/oklog/ulid/v2"
 
 	"github.com/tkhrk1010/infra-samples/dynamodb/go/event-store-adapter-go/domain"
 	"github.com/tkhrk1010/infra-samples/dynamodb/go/event-store-adapter-go/domain/models"
@@ -76,22 +75,19 @@ func newUserAccountRepository(dynamodbClient *dynamodb.Client) *repository.UserA
 }
 
 func emailCreated(email string) string {
+	slog.Info("emailCreated", slog.String("email", email))
 	// 重複チェックなどがされ、idが発行される
 	return ulid.Make().String()
 }
 
 func main() {
-	fmt.Println("start")
+	slog.Info("start")
 
 	initLogger()
 
 	dynamodbClient := newDynamoDBClient()
 
 	repository := newUserAccountRepository(dynamodbClient)
-
-	// jurnalとsnapshot tableのrecordを全部消すようにしたい
-	// localで試す用
-	// err = eventStore.ClearAll()
 
 	// NewEmailの処理をする(このsampleでは省略)
 	// emailを別集約に切り出したのは、sampleにそれっぽい別集約IDをもたせたかったからだけど、微妙かも
@@ -101,32 +97,40 @@ func main() {
 	// アクターモデルにすると、email actorにaskして、返事が来たらuserAccount actorを作る、といったイメージ
 	emailId1 := emailCreated("test@account.test")
 
-	fmt.Println("NewUserAccount")
+	slog.Info("NewUserAccount")
 	userAccount1, userAccountCreated := domain.NewUserAccount("username1", models.NewEmailId(emailId1))
-	fmt.Printf("userAccount1 = %+v\n", userAccount1)
+	slog.Info("userAccount1",
+		slog.String("model", userAccount1.String()),
+		slog.Uint64("seqNr", userAccount1.GetSeqNr()),
+		slog.Uint64("version", userAccount1.GetVersion()),
+	)
 
 	// Store an aggregate with a create event
-	fmt.Println("StoreEventAndSnapshot userAccountCreated")
+	slog.Info("StoreEventAndSnapshot userAccountCreated")
 	err := repository.StoreEventAndSnapshot(userAccountCreated, &userAccount1)
 	if err != nil {
 		panic(err)
 	}
 
 	// Replay the aggregate from the event store
-	fmt.Println("FindById userAccount1.id")
+	slog.Info("FindById userAccount1.id")
 	savedUserAccount1, err := repository.FindById(userAccount1.GetId())
 	if err != nil {
 		panic(err)
 	}
-	fmt.Printf("find userAccount1 = %+v\n", savedUserAccount1)
+	slog.Info("find userAccount1: ", slog.String("id", savedUserAccount1.GetId().String()))
 
 	// Execute a command on the aggregate
-	fmt.Println("ChangeName")
+	slog.Info("ChangeName\n")
 	userAccountUpdated, userAccountNameChanged := savedUserAccount1.ChangeName("username1-2")
-	fmt.Printf("userAccountUpdated = %+v\n", userAccountUpdated)
+	slog.Info("userAccountUpdated",
+		slog.String("model", userAccountUpdated.String()),
+		slog.Uint64("seqNr", userAccountUpdated.GetSeqNr()),
+		slog.Uint64("version", userAccountUpdated.GetVersion()),
+	)
 
 	// Store the new event without a snapshot
-	fmt.Println("StoreEvent userAccountNameChanged")
+	slog.Info("StoreEvent userAccountNameChanged")
 	// err = repository.StoreEvent(userAccountNameChanged, userAccountUpdated.GetVersion())
 	// Store the new event with a snapshot
 	err = repository.StoreEventAndSnapshot(userAccountNameChanged, userAccountUpdated)
@@ -134,5 +138,5 @@ func main() {
 		panic(err)
 	}
 
-	fmt.Println("end")
+	slog.Info("end")
 }

@@ -37,9 +37,6 @@ func EventConverter(m map[string]interface{}) (esag.Event, error) {
 		return &event, nil
 	case "UserAccountNameChanged":
 		userAccountName := m["name"].(string)
-		if err != nil {
-			return nil, err
-		}
 		event := events.NewUserAccountNameChangedFrom(
 			eventId,
 			userAccountId,
