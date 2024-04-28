@@ -2,71 +2,77 @@ package events
 
 import (
 	"fmt"
+	"time"
+	"github.com/oklog/ulid/v2"
 	esag "github.com/j5ik2o/event-store-adapter-go/pkg"
 	"github.com/tkhrk1010/infra-samples/dynamodb/go/event-store-adapter-go/domain/models"
 )
 
 type UserAccountNameChanged struct {
-	Id          string
-	AggregateId esag.AggregateId
-	TypeName    string
-	SeqNr       uint64
-	ExecutorId  models.UserAccountId
-	Name        string
-	OccurredAt  uint64
+	id          string
+	aggregateId models.UserAccountId
+	name        string
+	seqNr       uint64
+	executorId  models.UserAccountId
+	occurredAt  uint64
 }
 
-func NewUserAccountNameChanged(id string, aggregateId esag.AggregateId, seqNr uint64, name string, occurredAt uint64) *UserAccountNameChanged {
-	return &UserAccountNameChanged{
-		Id:          id,
-		AggregateId: aggregateId,
-		TypeName:    "UserAccountNameChanged",
-		SeqNr:       seqNr,
-		Name:        name,
-		OccurredAt:  occurredAt,
-	}
+func NewUserAccountNameChanged(aggregateId models.UserAccountId, name string, seqNr uint64, executorId models.UserAccountId) UserAccountNameChanged {
+	id := ulid.Make().String()
+	now := time.Now()
+	occurredAt := uint64(now.UnixNano() / 1e6)
+	return UserAccountNameChanged{id, aggregateId, name, seqNr, executorId, occurredAt}
 }
 
 func (e *UserAccountNameChanged) String() string {
-	return fmt.Sprintf("UserAccountNameChanged{Id: %s, AggregateId: %s, SeqNr: %d, Name: %s, OccurredAt: %d}", e.Id, e.AggregateId, e.SeqNr, e.Name, e.OccurredAt)
+	return fmt.Sprintf("UserAccountNameChanged{Id: %s, AggregateId: %s, SeqNr: %d, Name: %s, OccurredAt: %d}", e.id, e.aggregateId, e.seqNr, e.name, e.occurredAt)
 }
 
 func (e *UserAccountNameChanged) GetId() string {
-	return e.Id
+	return e.id
 }
 
 func (e *UserAccountNameChanged) GetTypeName() string {
-	return e.TypeName
+	return "UserAccountNameChanged"
+}
+
+func (e *UserAccountNameChanged) GetName() *string {
+	return &e.name
 }
 
 func (e *UserAccountNameChanged) GetAggregateId() esag.AggregateId {
-	return e.AggregateId
+	return &e.aggregateId
 }
 
 func (e *UserAccountNameChanged) GetSeqNr() uint64 {
-	return e.SeqNr
+	return e.seqNr
 }
 
 func (e *UserAccountNameChanged) GetOccurredAt() uint64 {
-	return e.OccurredAt
+	return e.occurredAt
 }
 
 func (e *UserAccountNameChanged) IsCreated() bool {
 	return false
 }
 
-func (g *UserAccountNameChanged) GetExecutorId() *models.UserAccountId {
-	return &g.ExecutorId
+func (e *UserAccountNameChanged) GetExecutorId() *models.UserAccountId {
+	return &e.executorId
 }
 
-func (g *UserAccountNameChanged) ToJSON() map[string]interface{} {
+// NewUserAccountNameChangedFrom is a constructor for UserAccountNameChanged
+func NewUserAccountNameChangedFrom(id string, aggregateId models.UserAccountId, name string, seqNr uint64, executorId models.UserAccountId, occurredAt uint64) UserAccountNameChanged {
+	return UserAccountNameChanged{id, aggregateId, name, seqNr, executorId, occurredAt}
+}
+
+func (e *UserAccountNameChanged) ToJSON() map[string]interface{} {
 	return map[string]interface{}{
-		"type_name":    g.GetTypeName(),
-		"id":           g.Id,
-		"aggregate_id": g.AggregateId,
-		"name":         g.Name,
-		"executor_id":  g.ExecutorId.ToJSON(),
-		"seq_nr":       g.SeqNr,
-		"occurred_at":  g.OccurredAt,
+		"type_name":    e.GetTypeName(),
+		"id":           e.id,
+		"aggregate_id": e.aggregateId,
+		"name":         e.name,
+		"executor_id":  e.executorId.ToJSON(),
+		"seq_nr":       e.seqNr,
+		"occurred_at":  e.occurredAt,
 	}
 }

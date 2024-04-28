@@ -3,13 +3,14 @@ package main
 import (
 	"context"
 	"fmt"
+	"log/slog"
+	"os"
+
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	esag "github.com/j5ik2o/event-store-adapter-go/pkg"
-	"log/slog"
-	"os"
 
 	"github.com/tkhrk1010/infra-samples/dynamodb/go/event-store-adapter-go/domain"
 	"github.com/tkhrk1010/infra-samples/dynamodb/go/event-store-adapter-go/domain/models"
@@ -87,12 +88,12 @@ func main() {
 	// err = eventStore.ClearAll()
 
 	fmt.Println("NewUserAccount")
-	userAccount1, userAccountCreated := domain.NewUserAccount(models.NewUserAccountId("1"), "test")
+	userAccount1, userAccountCreated := domain.NewUserAccount("test", models.NewUserAccountId())
 	fmt.Printf("userAccount1 = %+v\n", userAccount1)
 
 	// Store an aggregate with a create event
 	fmt.Println("StoreEventAndSnapshot userAccountCreated")
-	err := repository.StoreEventAndSnapshot(userAccountCreated, userAccount1)
+	err := repository.StoreEventAndSnapshot(userAccountCreated, &userAccount1)
 	if err != nil {
 		panic(err)
 	}
@@ -107,14 +108,14 @@ func main() {
 
 	// Execute a command on the aggregate
 	fmt.Println("ChangeName")
-	userAccountUpdated, userAccountRenamed := userAccount2.ChangeName("test2")
+	userAccountUpdated, userAccountNameChanged := userAccount2.ChangeName("test2")
 	fmt.Printf("userAccountUpdated = %+v\n", userAccountUpdated)
 
 	// Store the new event without a snapshot
-	fmt.Println("StoreEvent userAccountRenamed")
-	err = repository.StoreEvent(userAccountRenamed, userAccountUpdated.GetVersion())
+	fmt.Println("StoreEvent userAccountNameChanged")
+	// err = repository.StoreEvent(userAccountNameChanged, userAccountUpdated.GetVersion())
 	// Store the new event with a snapshot
-	// err = repository.StoreEventAndSnapshot(userAccountRenamed, userAccountUpdated)
+	err = repository.StoreEventAndSnapshot(userAccountNameChanged, userAccountUpdated)
 	if err != nil {
 		panic(err)
 	}

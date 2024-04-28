@@ -5,11 +5,12 @@ import (
 	"fmt"
 	"math/rand"
 	"time"
+
 	esag "github.com/j5ik2o/event-store-adapter-go/pkg"
 	"github.com/oklog/ulid/v2"
 
-	"github.com/tkhrk1010/infra-samples/dynamodb/go/event-store-adapter-go/domain/models"
 	"github.com/tkhrk1010/infra-samples/dynamodb/go/event-store-adapter-go/domain/events"
+	"github.com/tkhrk1010/infra-samples/dynamodb/go/event-store-adapter-go/domain/models"
 )
 
 type UserAccount struct {
@@ -24,24 +25,19 @@ type UserAccount struct {
 // However, this method is out of layer.
 func (ua *UserAccount) ToJSON() map[string]interface{} {
 	return map[string]interface{}{
-		"id":       ua.id.ToJSON(),
-		"name":     ua.name,
-		"seq_nr":   ua.seqNr,
-		"version":  ua.version,
+		"id":      ua.id.ToJSON(),
+		"name":    ua.name,
+		"seq_nr":  ua.seqNr,
+		"version": ua.version,
 	}
 }
 
-
-func NewUserAccount(id models.UserAccountId, name string) (*UserAccount, *events.UserAccountCreated) {
-	aggregate := UserAccount{
-		id:      id,
-		name:    name,
-		seqNr:   0,
-		version: 1,
-	}
-	aggregate.seqNr += 1
-	eventId := newULID()
-	return &aggregate, events.NewUserAccountCreated(eventId.String(), &id, aggregate.seqNr, name, uint64(time.Now().UnixNano()))
+func NewUserAccount(name string, executorId models.UserAccountId) (UserAccount, events.UserAccountEvent) {
+	id := models.NewUserAccountId()
+	seqNr := uint64(1)
+	version := uint64(1)
+	event := events.NewUserAccountCreated(id, name, seqNr, executorId)
+	return UserAccount{id, name, seqNr, version}, &event
 }
 
 func ReplayUserAccount(events []esag.Event, snapshot *UserAccount) *UserAccount {
@@ -55,13 +51,14 @@ func ReplayUserAccount(events []esag.Event, snapshot *UserAccount) *UserAccount 
 func (ua *UserAccount) applyEvent(event esag.Event) *UserAccount {
 	switch e := event.(type) {
 	case *events.UserAccountNameChanged:
-		update, err := ua.Rename(e.Name)
+		result, err := ua.NameChange(*e.GetName())
 		if err != nil {
 			panic(err)
 		}
-		return update.Aggregate
+		return result.Aggregate
+	default:
+		return ua
 	}
-	return ua
 }
 
 func (ua *UserAccount) String() string {
@@ -91,16 +88,16 @@ type UserAccountResult struct {
 	Event     *events.UserAccountNameChanged
 }
 
-func (ua *UserAccount) Rename(name string) (*UserAccountResult, error) {
+func (ua *UserAccount) NameChange(name string) (*UserAccountResult, error) {
 	updatedUserAccount := *ua
 	updatedUserAccount.name = name
 	updatedUserAccount.seqNr += 1
-	event := events.NewUserAccountNameChanged(newULID().String(), &ua.id, updatedUserAccount.seqNr, name, uint64(time.Now().UnixNano()))
-	return &UserAccountResult{&updatedUserAccount, event}, nil
+	event := events.NewUserAccountNameChanged(updatedUserAccount.id, updatedUserAccount.name, updatedUserAccount.seqNr, ua.id)
+	return &UserAccountResult{&updatedUserAccount, &event}, nil
 }
 
 func (ua *UserAccount) Equals(other *UserAccount) bool {
-	return ua.id.Equals(&other.id) && ua.name == other.name && ua.seqNr == other.seqNr && ua.version == other.version 
+	return ua.id.Equals(&other.id) && ua.name == other.name && ua.seqNr == other.seqNr && ua.version == other.version
 }
 
 // UUIDよりsort性能がいいULIDを使う
@@ -111,16 +108,14 @@ func newULID() ulid.ULID {
 }
 
 func (ua *UserAccount) ChangeName(name string) (*UserAccount, *events.UserAccountNameChanged) {
-	updatedUserAccount := *ua
-	updatedUserAccount.name = name
-	updatedUserAccount.seqNr += 1
-	event := events.NewUserAccountNameChanged(newULID().String(), &ua.id, updatedUserAccount.seqNr, name, uint64(time.Now().UnixNano()))
-	return &updatedUserAccount, event
+	updated := *ua
+	updated.name = name
+	updated.seqNr += 1
+	event := events.NewUserAccountNameChanged(updated.id, updated.name, updated.seqNr, ua.id)
+	return &updated, &event
 }
-
 
 // snapshotから集約を復元するときに使う
 func NewUserAccountFrom(id models.UserAccountId, name string, seqNr uint64, version uint64) UserAccount {
 	return UserAccount{id, name, seqNr, version}
 }
-

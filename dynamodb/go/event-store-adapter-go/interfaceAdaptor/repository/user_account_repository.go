@@ -3,11 +3,11 @@ package repository
 import (
 	"fmt"
 	esag "github.com/j5ik2o/event-store-adapter-go/pkg"
-	"encoding/json"
+	// "encoding/json"
 
 	"github.com/tkhrk1010/infra-samples/dynamodb/go/event-store-adapter-go/domain"
-	"github.com/tkhrk1010/infra-samples/dynamodb/go/event-store-adapter-go/domain/models"
-	"github.com/tkhrk1010/infra-samples/dynamodb/go/event-store-adapter-go/domain/events"
+	// "github.com/tkhrk1010/infra-samples/dynamodb/go/event-store-adapter-go/domain/models"
+	// "github.com/tkhrk1010/infra-samples/dynamodb/go/event-store-adapter-go/domain/events"
 	
 )
 
@@ -16,67 +16,67 @@ type UserAccountRepository struct {
 }
 
 
-func EventConverter(m map[string]interface{}) (esag.Event, error) {
-	// TODO: impl
-	return nil, nil
-}
+// func EventConverter(m map[string]interface{}) (esag.Event, error) {
+// 	// TODO: impl
+// 	return nil, nil
+// }
 
-func SnapshotConverter(m map[string]interface{}) (esag.Aggregate, error) {
-	userAccountId, err := models.ConvertUserAccountIdFromJSON(m["id"].(map[string]interface{})).Get()
-	if err != nil {
-		return nil, err
-	}
-	name := m["name"].(string)
-	seqNr := uint64(m["seq_nr"].(float64))
-	version := uint64(m["version"].(float64))
-	result := domain.NewUserAccountFrom(userAccountId, name, seqNr, version)
-	return &result, nil
-}
+// func SnapshotConverter(m map[string]interface{}) (esag.Aggregate, error) {
+// 	userAccountId, err := models.ConvertUserAccountIdFromJSON(m["id"].(map[string]interface{})).Get()
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	name := m["name"].(string)
+// 	seqNr := uint64(m["seq_nr"].(float64))
+// 	version := uint64(m["version"].(float64))
+// 	result := domain.NewUserAccountFrom(userAccountId, name, seqNr, version)
+// 	return &result, nil
+// }
 
-type EventSerializer struct{}
+// type EventSerializer struct{}
 
-func NewEventSerializer() *EventSerializer {
-	return &EventSerializer{}
-}
+// func NewEventSerializer() *EventSerializer {
+// 	return &EventSerializer{}
+// }
 
-func (s *EventSerializer) Serialize(event esag.Event) ([]byte, error) {
-	result, err := json.Marshal(event.(events.UserAccountEvent).ToJSON())
-	if err != nil {
-		return nil, esag.NewSerializationError("Failed to serialize the event", err)
-	}
-	return result, nil
-}
+// func (s *EventSerializer) Serialize(event esag.Event) ([]byte, error) {
+// 	result, err := json.Marshal(event.(events.UserAccountEvent).ToJSON())
+// 	if err != nil {
+// 		return nil, esag.NewSerializationError("Failed to serialize the event", err)
+// 	}
+// 	return result, nil
+// }
 
-func (s *EventSerializer) Deserialize(data []byte, eventMap *map[string]interface{}) error {
-	err := json.Unmarshal(data, eventMap)
-	if err != nil {
-		return esag.NewDeserializationError("Failed to deserialize the event", err)
-	}
-	return nil
-}
+// func (s *EventSerializer) Deserialize(data []byte, eventMap *map[string]interface{}) error {
+// 	err := json.Unmarshal(data, eventMap)
+// 	if err != nil {
+// 		return esag.NewDeserializationError("Failed to deserialize the event", err)
+// 	}
+// 	return nil
+// }
 
 
-type SnapshotSerializer struct{}
+// type SnapshotSerializer struct{}
 
-func NewSnapshotSerializer() *SnapshotSerializer {
-	return &SnapshotSerializer{}
-}
+// func NewSnapshotSerializer() *SnapshotSerializer {
+// 	return &SnapshotSerializer{}
+// }
 
-func (s *SnapshotSerializer) Serialize(aggregate esag.Aggregate) ([]byte, error) {
-	result, err := json.Marshal(aggregate.(*domain.UserAccount).ToJSON())
-	if err != nil {
-		return nil, esag.NewSerializationError("Failed to serialize the snapshot", err)
-	}
-	return result, nil
-}
+// func (s *SnapshotSerializer) Serialize(aggregate esag.Aggregate) ([]byte, error) {
+// 	result, err := json.Marshal(aggregate.(*domain.UserAccount).ToJSON())
+// 	if err != nil {
+// 		return nil, esag.NewSerializationError("Failed to serialize the snapshot", err)
+// 	}
+// 	return result, nil
+// }
 
-func (s *SnapshotSerializer) Deserialize(data []byte, aggregateMap *map[string]interface{}) error {
-	err := json.Unmarshal(data, aggregateMap)
-	if err != nil {
-		return esag.NewDeserializationError("Failed to deserialize the snapshot", err)
-	}
-	return nil
-}
+// func (s *SnapshotSerializer) Deserialize(data []byte, aggregateMap *map[string]interface{}) error {
+// 	err := json.Unmarshal(data, aggregateMap)
+// 	if err != nil {
+// 		return esag.NewDeserializationError("Failed to deserialize the snapshot", err)
+// 	}
+// 	return nil
+// }
 
 
 
