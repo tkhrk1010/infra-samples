@@ -1,24 +1,8 @@
 version: "3.9"
 
 services:
-  localstack:
-    image: localstack/localstack
-    ports:
-      - "4566:4566" # LocalStack Gateway
-    environment:
-      # LocalStack configuration: https://docs.localstack.cloud/references/configuration/
-      - SERVICES=dynamodb # 起動するサービス
-      - START_WEB=0 # LocalStackの管理コンソールを無効化
-      - DEFAULT_REGION=us-east-1 # デフォルトのリージョン
-      - DEBUG=1 # デバッグモードの有効化
-    volumes:
-      # - localstack-data:/tmp/localstack
-      - "/var/run/docker.sock:/var/run/docker.sock" # Dockerデーモンへのアクセス
-
   awscli:
     image: amazon/aws-cli:2.0.30 # AWS CLI v2のイメージ
-    depends_on:
-      - localstack
     environment:
       - AWS_DEFAULT_REGION=us-east-1
       - AWS_ACCESS_KEY_ID=test
@@ -30,6 +14,3 @@ services:
     entrypoint: ["/bin/sh", "-c"]
     # コンテナを起動状態に保つためのコマンド
     command: tail -f /dev/null
-
-# volumes:
-#   localstack-data:
