@@ -103,6 +103,7 @@ func (ua *UserAccount) Equals(other *UserAccount) bool {
 	return ua.id.Equals(&other.id) && ua.name == other.name && ua.seqNr == other.seqNr && ua.version == other.version 
 }
 
+// UUIDよりsort性能がいいULIDを使う
 func newULID() ulid.ULID {
 	t := time.Now()
 	entropy := ulid.Monotonic(rand.New(rand.NewSource(t.UnixNano())), 0)

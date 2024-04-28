@@ -14,16 +14,14 @@ import (
 	"github.com/tkhrk1010/infra-samples/dynamodb/go/event-store-adapter-go/domain"
 	"github.com/tkhrk1010/infra-samples/dynamodb/go/event-store-adapter-go/domain/models"
 	"github.com/tkhrk1010/infra-samples/dynamodb/go/event-store-adapter-go/interfaceAdaptor/repository"
-
 )
 
-func main() {
-	fmt.Println("start")
-	//
-	// logger
+func initLogger() {
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
 	slog.SetDefault(logger)
+}
 
+func newDynamoDBClient() *dynamodb.Client {
 	//
 	// dynamoDB client
 	awsDynamoDBEndpointUrl := "http://localhost:4566"
@@ -47,10 +45,11 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	dynamodbClient := dynamodb.NewFromConfig(awsCfg)
 
-	//
-	// event store
+	return dynamodb.NewFromConfig(awsCfg)
+}
+
+func newUserAccountRepository(dynamodbClient *dynamodb.Client) *repository.UserAccountRepository {
 	journalTableName := "journal"
 	snapshotTableName := "snapshot"
 	journalAidIndexName := "journal-aid-index"
@@ -71,13 +70,21 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	repository := repository.NewUserAccountRepository(eventStore)
+	return repository.NewUserAccountRepository(eventStore)
+}
 
+func main() {
+	fmt.Println("start")
+
+	initLogger()
+
+	dynamodbClient := newDynamoDBClient()
+
+	repository := newUserAccountRepository(dynamodbClient)
 
 	// jurnalとsnapshot tableのrecordを全部消すようにしたい
 	// localで試す用
 	// err = eventStore.ClearAll()
-
 
 	fmt.Println("NewUserAccount")
 	userAccount1, userAccountCreated := domain.NewUserAccount(models.NewUserAccountId("1"), "test")
@@ -85,7 +92,7 @@ func main() {
 
 	// Store an aggregate with a create event
 	fmt.Println("StoreEventAndSnapshot userAccountCreated")
-	err = repository.StoreEventAndSnapshot(userAccountCreated, userAccount1)
+	err := repository.StoreEventAndSnapshot(userAccountCreated, userAccount1)
 	if err != nil {
 		panic(err)
 	}
