@@ -3,8 +3,9 @@ package events
 import (
 	"fmt"
 	"time"
-	"github.com/oklog/ulid/v2"
+
 	esag "github.com/j5ik2o/event-store-adapter-go/pkg"
+	"github.com/oklog/ulid/v2"
 	"github.com/tkhrk1010/infra-samples/dynamodb/go/event-store-adapter-go/domain/models"
 )
 
@@ -13,21 +14,22 @@ type UserAccountCreated struct {
 	aggregateId models.UserAccountId
 	name        string
 	seqNr       uint64
-	// TODO: UserAccountが別集約前提でコピペしてきたから、executorIdとかが変な感じになってる。sampleのモデル考え直す必要あり。
-	executorId  models.UserAccountId
-	occurredAt  uint64
+	// TODO: UserAccountが別集約前提でコピペしてきたから、EmailIdとかが変な感じになってる。sampleのモデル考え直す必要あり。
+	// TODO: EmailIdにモデル差し替え
+	emailId    models.EmailId
+	occurredAt uint64
 }
 
-func NewUserAccountCreated(aggregateId models.UserAccountId, name string, seqNr uint64, executorId models.UserAccountId) UserAccountCreated {
+func NewUserAccountCreated(aggregateId models.UserAccountId, name string, seqNr uint64, emailId models.EmailId) UserAccountCreated {
 	id := ulid.Make().String()
 	now := time.Now()
 	occurredAt := uint64(now.UnixNano() / 1e6)
-	return UserAccountCreated{id, aggregateId, name, seqNr, executorId, occurredAt}
+	return UserAccountCreated{id, aggregateId, name, seqNr, emailId, occurredAt}
 }
 
 // NewUserAccountCreatedFrom is a constructor for UserAccountCreated
-func NewUserAccountCreatedFrom(id string, aggregateId models.UserAccountId, name string, seqNr uint64, executorId models.UserAccountId, occurredAt uint64) UserAccountCreated {
-	return UserAccountCreated{id, aggregateId, name, seqNr, executorId, occurredAt}
+func NewUserAccountCreatedFrom(id string, aggregateId models.UserAccountId, name string, seqNr uint64, emailId models.EmailId, occurredAt uint64) UserAccountCreated {
+	return UserAccountCreated{id, aggregateId, name, seqNr, emailId, occurredAt}
 }
 
 func (u *UserAccountCreated) ToJSON() map[string]interface{} {
@@ -36,12 +38,11 @@ func (u *UserAccountCreated) ToJSON() map[string]interface{} {
 		"id":           u.id,
 		"aggregate_id": u.aggregateId.ToJSON(),
 		"name":         u.name,
-		"executor_id":  u.executorId.ToJSON(),
+		"email_id":     u.emailId.ToJSON(),
 		"seq_nr":       u.seqNr,
 		"occurred_at":  u.occurredAt,
 	}
 }
-
 
 func (e *UserAccountCreated) String() string {
 	return fmt.Sprintf("UserAccountCreated{Id: %s, aggregateId: %s, SeqNr: %d, Name: %s, OccurredAt: %d}", e.id, e.aggregateId, e.seqNr, e.name, e.occurredAt)
@@ -60,8 +61,8 @@ func (e *UserAccountCreated) GetAggregateId() esag.AggregateId {
 	return &e.aggregateId
 }
 
-func (e *UserAccountCreated) GetExecutorId() *models.UserAccountId {
-	return &e.executorId
+func (e *UserAccountCreated) GetEmailId() *models.EmailId {
+	return &e.emailId
 }
 
 func (e *UserAccountCreated) GetSeqNr() uint64 {

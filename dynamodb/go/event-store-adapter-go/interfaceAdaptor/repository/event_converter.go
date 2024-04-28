@@ -1,10 +1,11 @@
 package repository
 
 import (
-	"github.com/tkhrk1010/infra-samples/dynamodb/go/event-store-adapter-go/domain/events"
-	"github.com/tkhrk1010/infra-samples/dynamodb/go/event-store-adapter-go/domain/models"
 	"fmt"
 	"log/slog"
+
+	"github.com/tkhrk1010/infra-samples/dynamodb/go/event-store-adapter-go/domain/events"
+	"github.com/tkhrk1010/infra-samples/dynamodb/go/event-store-adapter-go/domain/models"
 
 	esag "github.com/j5ik2o/event-store-adapter-go/pkg"
 )
@@ -16,7 +17,7 @@ func EventConverter(m map[string]interface{}) (esag.Event, error) {
 	if err != nil {
 		return nil, err
 	}
-	executorId, err := models.ConvertUserAccountIdFromJSON(m["executor_id"].(map[string]interface{})).Get()
+	emailId, err := models.ConvertEmailIdFromJSON(m["email_id"].(map[string]interface{})).Get()
 	if err != nil {
 		return nil, err
 	}
@@ -30,7 +31,7 @@ func EventConverter(m map[string]interface{}) (esag.Event, error) {
 			userAccountId,
 			userAccountName,
 			seqNr,
-			executorId,
+			emailId,
 			occurredAt,
 		)
 		return &event, nil
@@ -44,7 +45,7 @@ func EventConverter(m map[string]interface{}) (esag.Event, error) {
 			userAccountId,
 			userAccountName,
 			seqNr,
-			executorId,
+			emailId,
 			occurredAt,
 		)
 		return &event, nil

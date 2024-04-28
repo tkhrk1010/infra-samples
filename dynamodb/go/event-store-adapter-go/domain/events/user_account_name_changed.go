@@ -3,8 +3,9 @@ package events
 import (
 	"fmt"
 	"time"
-	"github.com/oklog/ulid/v2"
+
 	esag "github.com/j5ik2o/event-store-adapter-go/pkg"
+	"github.com/oklog/ulid/v2"
 	"github.com/tkhrk1010/infra-samples/dynamodb/go/event-store-adapter-go/domain/models"
 )
 
@@ -13,15 +14,14 @@ type UserAccountNameChanged struct {
 	aggregateId models.UserAccountId
 	name        string
 	seqNr       uint64
-	executorId  models.UserAccountId
 	occurredAt  uint64
 }
 
-func NewUserAccountNameChanged(aggregateId models.UserAccountId, name string, seqNr uint64, executorId models.UserAccountId) UserAccountNameChanged {
+func NewUserAccountNameChanged(aggregateId models.UserAccountId, name string, seqNr uint64) UserAccountNameChanged {
 	id := ulid.Make().String()
 	now := time.Now()
 	occurredAt := uint64(now.UnixNano() / 1e6)
-	return UserAccountNameChanged{id, aggregateId, name, seqNr, executorId, occurredAt}
+	return UserAccountNameChanged{id, aggregateId, name, seqNr, occurredAt}
 }
 
 func (e *UserAccountNameChanged) String() string {
@@ -56,13 +56,9 @@ func (e *UserAccountNameChanged) IsCreated() bool {
 	return false
 }
 
-func (e *UserAccountNameChanged) GetExecutorId() *models.UserAccountId {
-	return &e.executorId
-}
-
 // NewUserAccountNameChangedFrom is a constructor for UserAccountNameChanged
-func NewUserAccountNameChangedFrom(id string, aggregateId models.UserAccountId, name string, seqNr uint64, executorId models.UserAccountId, occurredAt uint64) UserAccountNameChanged {
-	return UserAccountNameChanged{id, aggregateId, name, seqNr, executorId, occurredAt}
+func NewUserAccountNameChangedFrom(id string, aggregateId models.UserAccountId, name string, seqNr uint64, emailId models.EmailId, occurredAt uint64) UserAccountNameChanged {
+	return UserAccountNameChanged{id, aggregateId, name, seqNr, occurredAt}
 }
 
 func (e *UserAccountNameChanged) ToJSON() map[string]interface{} {
@@ -71,7 +67,6 @@ func (e *UserAccountNameChanged) ToJSON() map[string]interface{} {
 		"id":           e.id,
 		"aggregate_id": e.aggregateId,
 		"name":         e.name,
-		"executor_id":  e.executorId.ToJSON(),
 		"seq_nr":       e.seqNr,
 		"occurred_at":  e.occurredAt,
 	}

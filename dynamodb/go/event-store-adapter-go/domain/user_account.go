@@ -32,11 +32,11 @@ func (ua *UserAccount) ToJSON() map[string]interface{} {
 	}
 }
 
-func NewUserAccount(name string, executorId models.UserAccountId) (UserAccount, events.UserAccountEvent) {
+func NewUserAccount(name string, emailId models.EmailId) (UserAccount, events.UserAccountEvent) {
 	id := models.NewUserAccountId()
 	seqNr := uint64(1)
 	version := uint64(1)
-	event := events.NewUserAccountCreated(id, name, seqNr, executorId)
+	event := events.NewUserAccountCreated(id, name, seqNr, emailId)
 	return UserAccount{id, name, seqNr, version}, &event
 }
 
@@ -92,7 +92,7 @@ func (ua *UserAccount) NameChange(name string) (*UserAccountResult, error) {
 	updatedUserAccount := *ua
 	updatedUserAccount.name = name
 	updatedUserAccount.seqNr += 1
-	event := events.NewUserAccountNameChanged(updatedUserAccount.id, updatedUserAccount.name, updatedUserAccount.seqNr, ua.id)
+	event := events.NewUserAccountNameChanged(updatedUserAccount.id, updatedUserAccount.name, updatedUserAccount.seqNr)
 	return &UserAccountResult{&updatedUserAccount, &event}, nil
 }
 
@@ -111,7 +111,7 @@ func (ua *UserAccount) ChangeName(name string) (*UserAccount, *events.UserAccoun
 	updated := *ua
 	updated.name = name
 	updated.seqNr += 1
-	event := events.NewUserAccountNameChanged(updated.id, updated.name, updated.seqNr, ua.id)
+	event := events.NewUserAccountNameChanged(updated.id, updated.name, updated.seqNr)
 	return &updated, &event
 }
 

@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"os"
 
+	"github.com/oklog/ulid/v2"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials"
@@ -74,6 +75,11 @@ func newUserAccountRepository(dynamodbClient *dynamodb.Client) *repository.UserA
 	return repository.NewUserAccountRepository(eventStore)
 }
 
+func emailCreated(email string) string {
+	// 重複チェックなどがされ、idが発行される
+	return ulid.Make().String()
+}
+
 func main() {
 	fmt.Println("start")
 
@@ -87,8 +93,16 @@ func main() {
 	// localで試す用
 	// err = eventStore.ClearAll()
 
+	// NewEmailの処理をする(このsampleでは省略)
+	// emailを別集約に切り出したのは、sampleにそれっぽい別集約IDをもたせたかったからだけど、微妙かも
+	// emailの重複チェックをするため、emailを別集約に切り出すという設定だった(emailとは別にサロゲート的なIdを持つのはマスキングできるようにするため)
+	// が、read modelの方でemailの重複チェックをして、write modelの方ではdynamodb commit時にuniqueじゃないとエラーが出るようにして時差ヘッジとかがいいか？
+	// 要議論だが、ここでは、email集約が無事生まれたらdomain eventでuserAccount集約が生まれる、といった流れを想定する
+	// アクターモデルにすると、email actorにaskして、返事が来たらuserAccount actorを作る、といったイメージ
+	emailId1 := emailCreated("test@account.test")
+
 	fmt.Println("NewUserAccount")
-	userAccount1, userAccountCreated := domain.NewUserAccount("test", models.NewUserAccountId())
+	userAccount1, userAccountCreated := domain.NewUserAccount("username1", models.NewEmailId(emailId1))
 	fmt.Printf("userAccount1 = %+v\n", userAccount1)
 
 	// Store an aggregate with a create event
@@ -100,15 +114,15 @@ func main() {
 
 	// Replay the aggregate from the event store
 	fmt.Println("FindById userAccount1.id")
-	userAccount2, err := repository.FindById(userAccount1.GetId())
+	savedUserAccount1, err := repository.FindById(userAccount1.GetId())
 	if err != nil {
 		panic(err)
 	}
-	fmt.Printf("userAccount2 = %+v\n", userAccount2)
+	fmt.Printf("find userAccount1 = %+v\n", savedUserAccount1)
 
 	// Execute a command on the aggregate
 	fmt.Println("ChangeName")
-	userAccountUpdated, userAccountNameChanged := userAccount2.ChangeName("test2")
+	userAccountUpdated, userAccountNameChanged := savedUserAccount1.ChangeName("username1-2")
 	fmt.Printf("userAccountUpdated = %+v\n", userAccountUpdated)
 
 	// Store the new event without a snapshot
