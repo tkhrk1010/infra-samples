@@ -29,7 +29,7 @@ cd ../awscli
 # Lambda関数がすでに存在する場合は削除する
 docker-compose exec -T awscli aws lambda delete-function \
 	--function-name ${FUNCTION_NAME} \
-	--endpoint-url=http://host.docker.internal:14566
+	--endpoint-url=${ENDPOINT_URL}
 
 # Lambda関数の作成または更新
 docker-compose exec awscli aws lambda create-function \
