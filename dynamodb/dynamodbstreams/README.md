@@ -1,0 +1,1 @@
+dynamodb streamsをlambdaで受けるまで
