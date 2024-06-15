@@ -1,4 +1,4 @@
-module github.com/tkhrk1010/infra-samples/lambda/lambda
+module github.com/tkhrk1010/infra-samples/github.com/tkhrk1010/infra-samples/lambda-container/minimal/lambda
 
 go 1.22
 
